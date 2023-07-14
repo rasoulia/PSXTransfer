@@ -1,0 +1,74 @@
+﻿<UserControl x:Class="PSXTransfer.WPF.MVVM.Views.LogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PSXTransfer.WPF.MVVM.Views"
+             xmlns:di="clr-namespace:PSXTransfer.WPF.MVVM.Data"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:vm="clr-namespace:PSXTransfer.WPF.MVVM.ViewModels" d:DataContext="{d:DesignInstance Type=vm:PSXTransferViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" DataContext="{di:DISource Type=vm:PSXTransferViewModel}">
+
+    <UserControl.Resources>
+        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Foreground" Value="#CFCFCF"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatDarkButton}">
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Foreground" Value="#CFCFCF"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignActionToggleButton}">
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CFCFCF"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Foreground" Value="#CFCFCF"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <UniformGrid Columns="6">
+                <ComboBox materialDesign:TextFieldAssist.PrefixText="IP: " ItemsSource="{Binding Path=AddressList}" SelectedValue="{Binding Path=Address,UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox materialDesign:HintAssist.Hint="Port: " materialDesign:TextFieldAssist.PrefixText="Port: " Text="{Binding Path=Port,UpdateSourceTrigger=PropertyChanged}"/>
+                <ComboBox materialDesign:TextFieldAssist.PrefixText="Buffer:  " ItemsSource="{Binding Path=BufferList}" SelectedValue="{Binding Path=BufferSize,UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Value" SelectedValuePath="Key"/>
+                <TextBox materialDesign:HintAssist.Hint="Rules: " materialDesign:TextFieldAssist.PrefixText="Rules: " Text="{Binding Path=Rule,UpdateSourceTrigger=PropertyChanged}"/>
+                <CheckBox IsChecked="{Binding Path=IsAutoFind,UpdateSourceTrigger=PropertyChanged}" Content="Offline Transfer?" Foreground="#CFCFCF" Margin="5"/>
+                <CheckBox IsChecked="{Binding Path=IsConnected,UpdateSourceTrigger=PropertyChanged}" Content="Is Connected?" Foreground="#CFCFCF" Margin="5"/>
+                <UniformGrid Columns="2">
+                    <Button Command="{Binding Path=UpdateDatabase}" Content="{materialDesign:PackIcon Kind=Database}" Background="{Binding Path=Connected,UpdateSourceTrigger=PropertyChanged}" ToolTip="Update Database"/>
+                    <Button Command="{Binding Path=ClearLog}" Content="{materialDesign:PackIcon Kind=Delete}" ToolTip="Clear Log"/>
+                </UniformGrid>
+            </UniformGrid>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Path=LogList}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="5" BorderThickness="2" Background="#2F2F2F" Margin="10">
+                                <DockPanel>
+                                    <Border CornerRadius="5" BorderThickness="2" Background="#2F2F2F" Margin="10">
+                                        <DockPanel>
+                                            <local:UrlView Url="{Binding Path=Link,UpdateSourceTrigger=PropertyChanged}" FilePath="{Binding Path=FilePath,UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DockPanel>
+                                    </Border>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
