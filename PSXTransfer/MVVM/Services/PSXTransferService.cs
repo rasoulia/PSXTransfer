@@ -13,47 +13,54 @@ using System.Threading.Tasks;
 
 namespace PSXTransfer.WPF.MVVM.Services
 {
-    public class PSXTransferService : IPSXTransferService
+   public class PSXTransferService : IPSXTransferService
     {
         private HttpListenerHelp? _listener;
 
         public async Task AddOrUpdateGame(string file)
         {
-            using PSXTransferDataContext db = new();
-
-            string? titleID = Path.GetFileName(file).Split('-')[1].Replace("_00", "");
-            string? filePath = Path.GetDirectoryName(file)!;
-            string? title = Directory.GetParent(file)?.Name;
-            string console = titleID.Contains("CUSA") ? "PS4" : "PS5";
-
-            Game? gameInfo = await GetGameByTitleID(titleID);
-
-            if (gameInfo is null)
+            try
             {
-                gameInfo = new()
+                using PSXTransferDataContext db = new();
+
+                string? titleID = Path.GetFileName(file).Split('-')[1].Replace("_00", "");
+                string? filePath = Path.GetDirectoryName(file)!;
+                string? title = Directory.GetParent(file)?.Name;
+                string console = titleID.Contains("CUSA") ? "PS4" : "PS5";
+
+                Game? gameInfo = await GetGameByTitleID(titleID);
+
+                if (gameInfo is null)
                 {
-                    TitleID = titleID,
-                    LocalPath = filePath,
-                    Title = title,
-                    Console = console,
-                };
+                    gameInfo = new()
+                    {
+                        TitleID = titleID,
+                        LocalPath = filePath,
+                        Title = title,
+                        Console = console,
+                    };
 
-                await db.AddAsync(gameInfo);
+                    await db.AddAsync(gameInfo);
+                }
+
+                else if (gameInfo.LocalPath == filePath)
+                {
+                    return;
+                }
+
+                else
+                {
+                    gameInfo.LocalPath = filePath;
+
+                    db.Update(gameInfo);
+                }
+
+                await db.SaveChangesAsync();
             }
-
-            else if (gameInfo.LocalPath == filePath)
+            catch
             {
-                return;
+
             }
-
-            else
-            {
-                gameInfo.LocalPath = filePath;
-
-                db.Update(gameInfo);
-            }
-
-            await db.SaveChangesAsync();
         }
 
         public async Task<Game?> GetGameByTitleID(string titleID)
@@ -89,11 +96,18 @@ namespace PSXTransfer.WPF.MVVM.Services
                     {
                         try
                         {
-                            ILookup<string, string> files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories).Where(f => f.EndsWith(".pkg", StringComparison.OrdinalIgnoreCase)).ToLookup(f => Path.GetFileName(f).Split('-')[1].Replace("_00", ""), f => f);
+                            IEnumerable<string> files = Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories).Where(f => f.EndsWith(".pkg", StringComparison.OrdinalIgnoreCase));
 
-                            foreach (IGrouping<string, string> file in files)
+                            foreach (string? file in files)
                             {
-                                await AddOrUpdateGame(file.First());
+                                try
+                                {
+                                    await AddOrUpdateGame(file);
+                                }
+                                catch
+                                {
+
+                                }
                             }
                         }
                         catch

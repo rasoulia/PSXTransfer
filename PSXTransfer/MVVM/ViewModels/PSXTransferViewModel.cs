@@ -18,29 +18,37 @@ namespace PSXTransfer.WPF.MVVM.ViewModels
         private readonly IPSXTransferService _psx;
         private void AddUrl(UrlInfo ui)
         {
-            ui.PsnUrl = ui.PsnUrl?.Split('?')[0];
-            if (PSXTools.RegexUrl(ui.PsnUrl))
+            try
             {
-                Uri? uri = new(ui.PsnUrl!);
-                string fileName = Path.GetFileName(uri.LocalPath);
-                string titleID = Path.GetFileName(uri.LocalPath).Split('-')[1].Replace("_00", "");
-                Game? game = _psx.GetGameByTitleID(titleID).Result;
-
-                LogViewModel log = new()
+                ui.PsnUrl = ui.PsnUrl?.Split('?')[0];
+                if (PSXTools.RegexUrl(ui.PsnUrl))
                 {
-                    FilePath = File.Exists(Path.Combine(game?.LocalPath ?? "", fileName)) ? Path.Combine(game?.LocalPath ?? "", fileName) : "File Not Found",
-                    Link = ui.PsnUrl,
-                    TitleID = titleID,
-                    Title = Directory.GetParent(Path.Combine(game?.LocalPath ?? "", fileName))?.Name
-                };
+                    Uri? uri = new(ui.PsnUrl!);
+                    string fileName = Path.GetFileName(uri.LocalPath);
+                    string titleID = Path.GetFileName(uri.LocalPath).Split('-')[1].Replace("_00", "");
+                    Game? game = _psx.GetGameByTitleID(titleID).Result;
 
-                AppConfig.Instance().LocalFileDirectory = game?.LocalPath ?? "";
+                    LogViewModel log = new()
+                    {
+                        FilePath = File.Exists(Path.Combine(game?.LocalPath ?? "", fileName)) ? Path.Combine(game?.LocalPath ?? "", fileName) : "File Not Found",
+                        Link = ui.PsnUrl,
+                        TitleID = titleID,
+                        Title = Directory.GetParent(Path.Combine(game?.LocalPath ?? "", fileName))?.Name
+                    };
 
-                if (!_logList.Any(lg => lg.Link == log.Link))
-                {
-                    _logList.Insert(0, log);
-                    OnPropertyChanged(nameof(LogList));
+                    AppConfig.Instance().LocalFileDirectory = game?.LocalPath ?? "";
+
+                    if (!_logList.Any(lg => lg.Link == log.Link))
+                    {
+                        _logList.Insert(0, log);
+                        OnPropertyChanged(nameof(LogList));
+                    }
                 }
+            }
+            catch
+            {
+
+            }
             }
         }
         public PSXTransferViewModel(IPSXTransferService psx)
